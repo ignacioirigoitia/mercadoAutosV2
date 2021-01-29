@@ -25,12 +25,17 @@
                         </div>
                         <div class="col-12 col-md-8 text-center mt-5">
                             <button type="submit" class="btn btn-primary">Loguearme!</button>
+                            <p class="mt-4">¿No estas registrado? <a href="/admin/register">Registrate!</a></p>
                         </div>
-                        <% if (typeof error != "undefined") { %>
-                            <div class="alert alert-danger">
-                                <span><%= error %> </span>
-                            </div>
-                        <% } %>
+                        <div class="col-12 col-md-8">
+                            <% if (typeof error !="undefined" ) { %>
+                                <div class="alert alert-danger mt-5">
+                                    <span>
+                                        <%= error %>
+                                    </span>
+                                </div>
+                                <% } %>
+                        </div>
                     </div>
                 </div>
             </form>

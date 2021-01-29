@@ -1,23 +1,36 @@
 const path = require("path");
 const bcrypt = require("bcrypt")
+const fs = require("fs")
 
-const {getAutos, setAutos} = require(path.join("..", "data", "autos"));
-const {getAdmins, setAdmins} = require(path.join("..", "data", "admins"))
+const { getAutos, setAutos } = require(path.join("..", "data", "autos"));
+const { getAdmins, setAdmins } = require(path.join("..", "data", "admins"))
 
 const autos = getAutos()
 const admins = getAdmins()
 
 module.exports = {
-    register : (req, res) => {
+    register: (req, res) => {
         res.render("admin/register")
     },
 
-    login : (req, res) => {
+    login: (req, res) => {
         res.render("admin/login")
     },
 
-    processRegister : (req, res) => {
-        const {username, pass} = req.body;
+    processRegister: (req, res) => {
+        const { username, pass } = req.body;
+
+        if (!username || !pass) {
+            return res.redirect("/admin/register") // validacion para que no me cargue un usuario vacio
+        }
+
+        let result = admins.find(admin => admin.username.toLowerCase() === username.toLowerCase().trim())
+
+        if (result) {
+            return res.render("admin/login", {
+                error: "El nombre de usuario ya esta en uso"
+            })
+        }
 
         let lastID = 0;
         admins.forEach(admin => {
@@ -29,9 +42,9 @@ module.exports = {
         let passHash = bcrypt.hashSync(pass.trim(), 10)
 
         const newAdmin = {
-            id : +lastID + 1,
+            id: +lastID + 1,
             username: username.trim(),
-            pass : passHash 
+            pass: passHash
         }
 
         admins.push(newAdmin);
@@ -40,41 +53,39 @@ module.exports = {
 
     },
 
-    processLogin : (req, res) => {
-        const {username, pass} = req.body;
+    processLogin: (req, res) => {
+        const { username, pass } = req.body;
 
         let result = admins.find(admin => admin.username.toLowerCase() === username.toLowerCase().trim())
 
-        if(result){
-            if(bcrypt.compareSync(pass.trim(), result.pass)){
+        if (result) {
+            if (bcrypt.compareSync(pass.trim(), result.pass)) {
                 return res.redirect("admin")
-            }else{
-                res.render("admin/login", {
-                    error : "Credenciales invalidas"
-                })
             }
-        }else{
-            res.render("admin/login", {
-                error : "Credenciales invalidas"
-            })
         }
+
+        res.render("admin/login", {
+            error: "Credenciales invalidas"
+        })
+
     },
 
-    index : (req,res) => {
+    index: (req, res) => {
         res.render('admin/index')
     },
-    carsList : (req,res) => {
+    carsList: (req, res) => {
 
-        res.render('admin/carsList',{
+        res.render('admin/carsList', {
             autos
         })
     },
-    carsCreate : (req,res) => {
+    carsCreate: (req, res) => {
 
         res.render('admin/carsCreate');
-        
+
     },
-    carsStore : (req,res) => {
+    carsStore: (req, res, next) => {
+
         let lastID = 1;
         autos.forEach(auto => {
             if (auto.id > lastID) {
@@ -82,7 +93,7 @@ module.exports = {
             }
         });
 
-        const {marca,modelo,color,anio,img} = req.body;
+        const { marca, modelo, color, anio, img } = req.body;
 
         const auto = {
             id: lastID + 1,
@@ -99,19 +110,19 @@ module.exports = {
         res.redirect('/admin/autos/list');
 
     },
-    carsEdit : (req,res) => {
-        
+    carsEdit: (req, res) => {
+
         const auto = autos.find(auto => auto.id === +req.params.id)
 
         res.render("admin/carsEdit", {
             auto
         })
     },
-    carsUpdate : (req,res) => {
-        const {marca,modelo,color,anio,img} = req.body;
+    carsUpdate: (req, res) => {
+        const { marca, modelo, color, anio, img } = req.body;
 
         autos.forEach(auto => {
-            if(auto.id === +req.params.id){
+            if (auto.id === +req.params.id) {
                 auto.id = Number(req.params.id)
                 auto.marca = marca;
                 auto.modelo = modelo;
@@ -125,11 +136,16 @@ module.exports = {
         res.redirect('/admin/autos/list');
 
     },
-    carsDelete : (req,res) => {
-        autos.forEach(auto =>{
-            if(auto.id === +req.params.id){
+    carsDelete: (req, res) => {
+        autos.forEach(auto => {
+            if (auto.id === +req.params.id) {
+
+                if(fs.existsSync(path.join("public", "images", "autos", auto.img))){
+                    fs.unlinkSync(path.join("public", "images", "autos", auto.img))
+                }
+
                 var aEliminar = autos.indexOf(auto)
-                autos.splice(aEliminar,1)
+                autos.splice(aEliminar, 1)
             }
         });
 
@@ -137,5 +153,5 @@ module.exports = {
         res.redirect('/admin/autos/list');
 
     }
-    
+
 }

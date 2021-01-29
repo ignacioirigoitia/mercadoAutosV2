@@ -8,7 +8,7 @@ module.exports = {
     },
 
     setAutos : (data) => {
-        fs.writeFileSync(autos_db, JSON.stringify(data),'utf-8');
+        fs.writeFileSync(autos_db, JSON.stringify(data, null, 2),'utf-8');
     }
 }
 
