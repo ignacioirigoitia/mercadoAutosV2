@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<%- include('./partials/head')  %> 
+<body>
+    <%- include('./partials/header')  %> 
+
+    <main>
+        <ul>
+            <% admins.forEach(admin => { %>
+                <li><%= admin.username %> </li>
+                <a href="/admin/profile/<%= admin.id %> " class="btn btn-sm btn-success">ver mas</a>
+                <% }) %>
+        </ul>
+    </main>
+
+    <%- include('./partials/footer')  %> 
+
+</body>
+</html>

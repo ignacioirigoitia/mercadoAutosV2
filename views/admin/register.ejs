@@ -12,8 +12,9 @@
                         <div class="col-12 col-md-6 col-lg-4">
                             <div class="form-floating mb-3">
                                 <input type="email" class="form-control" id="floatingInput" placeholder="User name"
-                                    name="username">
+                                    name="username" value="<%= (typeof old != "undefined" && old.username) ? old.username : "" %>">
                                 <label for="floatingInput">User name</label>
+                                <span class="text-danger"> <%= (typeof errores != "undefined" && errores.username) ? errores.username.msg : " "%>  </span>
                             </div>
                         </div>
                         <div class="col-12 col-md-6 col-lg-4">
@@ -21,6 +22,7 @@
                                 <input type="password" class="form-control" id="floatingPassword" placeholder="Password"
                                     name="pass">
                                 <label for="floatingPassword">Password</label>
+                                <span class="text-danger"> <%= (typeof errores != "undefined" && errores.pass) ? errores.pass.msg : " "%>  </span>
                             </div>
                         </div>
                         <div class="col-12 col-md-8 text-center mt-5">
@@ -28,11 +30,13 @@
                             <p class="mt-4">¿Estas registrado? <a href="/admin/login">Inicia sesion</a></p>
                         </div>
                         <div class="col-12">
-                            <% if (typeof error !="undefined" ) { %>
+                            <% if (typeof errores !="undefined" ) { %>
                                 <div class="alert alert-danger mt-5">
-                                    <span>
-                                        <%= error %>
-                                    </span>
+                                    <ul>
+                                        <% errores.forEach(error => { %>
+                                            <li><%= error.msg %> </li>
+                                        <% }) %>
+                                    </ul>
                                 </div>
                                 <% } %>
                         </div>

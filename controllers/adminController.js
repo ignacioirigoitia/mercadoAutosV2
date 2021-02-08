@@ -1,6 +1,8 @@
 const path = require("path");
 const bcrypt = require("bcrypt")
 const fs = require("fs")
+const {validationResult} = require("express-validator");
+
 
 const { getAutos, setAutos } = require(path.join("..", "data", "autos"));
 const { getAdmins, setAdmins } = require(path.join("..", "data", "admins"))
@@ -10,6 +12,8 @@ const admins = getAdmins()
 
 module.exports = {
     register: (req, res) => {
+
+
         res.render("admin/register")
     },
 
@@ -18,19 +22,20 @@ module.exports = {
     },
 
     processRegister: (req, res) => {
+
+        const errores = validationResult(req)
+
+        if(!errores.isEmpty()){
+            return res.render("admin/register",{
+                errores: errores.errors.mapped(),
+                old : req.body
+            })
+        }else{
+
+
         const { username, pass } = req.body;
 
-        if (!username || !pass) {
-            return res.redirect("/admin/register") // validacion para que no me cargue un usuario vacio
-        }
 
-        let result = admins.find(admin => admin.username.toLowerCase() === username.toLowerCase().trim())
-
-        if (result) {
-            return res.render("admin/login", {
-                error: "El nombre de usuario ya esta en uso"
-            })
-        }
 
         let lastID = 0;
         admins.forEach(admin => {
@@ -50,17 +55,27 @@ module.exports = {
         admins.push(newAdmin);
         setAdmins(admins)
         res.redirect("/admin/login")
-
+        }
     },
 
     processLogin: (req, res) => {
-        const { username, pass } = req.body;
+        const { username, pass, recordar } = req.body;
 
-        let result = admins.find(admin => admin.username.toLowerCase() === username.toLowerCase().trim())
+        let result = admins.find(admin => admin.username === username.trim())
 
         if (result) {
             if (bcrypt.compareSync(pass.trim(), result.pass)) {
-                return res.redirect("admin")
+
+                req.session.userAdmin = {
+                    id: result.id,
+                    username: result.username
+                }
+
+                if (recordar != "undefined") {
+                    res.cookie("userAdmin", req.session.userAdmin, {maxAge: 1000 * 60});  //METODO COOKIE RECIBE 3 PARAMETROS, NOMBRE DE LA COOKIE, LO QUE SE GUARDA Y EL TIEMPO
+                }
+
+                return res.redirect("/admin")
             }
         }
 
@@ -68,6 +83,26 @@ module.exports = {
             error: "Credenciales invalidas"
         })
 
+    },
+    logout: (req, res) => {
+        /* req.session.destroy();  */                 /* FORMA TRADICIONAL DE CERRAR SESION */
+        delete req.session.userAdmin;              /* SOLO BORRAS EL USERADMIN DEL SESSION, NO EL SESSION EN SU TOTALIDAD */
+        if(req.cookies.userAdmin){
+            res.cookie("userAdmin", "", {maxAge: -1})
+        };
+        res.redirect("/");
+    },
+
+    listAdmins : (req, res) => {
+
+        res.render("admin/admins", {admins})
+
+    },
+    profileAdmin: (req, res) => {
+
+        const admin = admins.find(admin => admin.id === +req.params.id)
+
+        res.render("admin/profile", {admin})
     },
 
     index: (req, res) => {

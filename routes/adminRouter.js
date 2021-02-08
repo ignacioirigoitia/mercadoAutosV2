@@ -1,30 +1,47 @@
 const express = require('express');
 const router = express.Router();
+const {index, carsList, carsCreate, carsEdit, carsStore, carsDelete, carsUpdate, register, processRegister, login, processLogin, listAdmins, profileAdmin, logout} = require('../controllers/adminController');
+
+
+/* MIDDLEWARES */
+
 const upload = require("../middlewares/multerAutos");
+const adminCheck = require("../middlewares/adminCheck");
 
-const {index, carsList, carsCreate, carsEdit, carsStore, carsDelete, carsUpdate, register, processRegister, login, processLogin} = require('../controllers/adminController');
 
-router.get('/',index);
+/* VALIDACIONES */
+
+const registerAdminValidator = require("../validations/registerAdminValidator");
+const loginAdminValidator = require("../validations/loginAdminValidator");
+
+
+router.get('/', adminCheck, index);
 
 //entidad administradores
 
-router.get("/register", register)
-router.post("/register", processRegister)
+router.get("/register", register);
+router.post("/register", registerAdminValidator, processRegister);
 
-router.get("/login", login)
-router.post("/login", processLogin)
+router.get("/login", login);
+router.post("/login", loginAdminValidator, processLogin);
 
-//entidad autos
+router.get("/logout", logout);
 
-router.get('/autos/list',carsList);
+router.get("/list", listAdmins);
+router.get("/profile/:id", profileAdmin);
 
-router.get('/autos/create',carsCreate);
+
+//entidad autos                                                                                  TODAS LAS CHECK VAN EN LOS GET
+
+router.get('/autos/list', adminCheck, carsList);
+
+router.get('/autos/create', adminCheck, carsCreate); 
 router.post('/autos/store',upload.any(), carsStore);
 
-router.get('/autos/edit/:id',carsEdit);
-router.put('/autos/update/:id',carsUpdate);
+router.get('/autos/edit/:id', adminCheck, carsEdit);
+router.put('/autos/update/:id', carsUpdate);
 
-router.delete('/autos/delete/:id',carsDelete);
+router.delete('/autos/delete/:id', carsDelete);
 
 
 module.exports = router;
